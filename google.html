@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>谷歌搜索结果快捷显示工具</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        h1 {
+            color: #4285f4;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .search-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        .search-box {
+            width: 100%;
+            display: flex;
+            margin-bottom: 25px;
+        }
+        #search-input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px 0 0 8px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        #search-input:focus {
+            border-color: #4285f4;
+        }
+        #search-button {
+            padding: 12px 25px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        #search-button:hover {
+            background-color: #3367d6;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 16px;
+            color: #666;
+        }
+        .continent-section {
+            margin-bottom: 30px;
+        }
+        .continent-header {
+            background-color: #e8f0fe;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #1a73e8;
+            font-weight: 500;
+            font-size: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 4px solid #1a73e8;
+        }
+        .countries-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+        }
+        .country-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            padding: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #eee;
+        }
+        .country-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: #4285f4;
+        }
+        .country-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .country-name {
+            font-weight: 500;
+            font-size: 16px;
+            color: #333;
+        }
+        .country-rank {
+            font-size: 12px;
+            color: #666;
+            background-color: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        .search-link {
+            display: block;
+            padding: 8px 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #1a73e8;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            text-align: center;
+            border: 1px solid #e8eaed;
+        }
+        .search-link:hover {
+            background-color: #e8f0fe;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .control-button {
+            padding: 8px 12px;
+            background-color: #f1f3f4;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .control-button:hover {
+            background-color: #e8eaed;
+        }
+        .control-button.active {
+            background-color: #e8f0fe;
+            color: #1a73e8;
+            font-weight: 500;
+        }
+        .continent-toggle {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .continent-button {
+            padding: 6px 12px;
+            background-color: #f1f3f4;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .continent-button:hover {
+            background-color: #e8eaed;
+        }
+        .continent-button.active {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #e8f0fe;
+            border-radius: 8px;
+            color: #555;
+            line-height: 1.6;
+            border-left: 4px solid #4285f4;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #4285f4;
+        }
+        @media (max-width: 768px) {
+            .countries-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+        @media (max-width: 480px) {
+            .countries-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>谷歌搜索结果快捷显示工具</h1>
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="请输入搜索关键词" value="VIOX ELECTRIC">
+            <button id="search-button">生成链接</button>
+        </div>
+        <div class="controls">
+            <button id="sort-by-rank" class="control-button active">按GDP排名排序</button>
+            <button id="sort-by-name" class="control-button">按国家名称排序</button>
+        </div>
+        <div class="continent-toggle">
+            <button class="continent-button active" data-continent="all">全部</button>
+            <button class="continent-button" data-continent="asia">亚洲</button>
+            <button class="continent-button" data-continent="europe">欧洲</button>
+            <button class="continent-button" data-continent="northamerica">北美洲</button>
+            <button class="continent-button" data-continent="southamerica">南美洲</button>
+            <button class="continent-button" data-continent="africa">非洲</button>
+            <button class="continent-button" data-continent="oceania">大洋洲</button>
+        </div>
+        <div id="loading" class="loading" style="display: none;">
+            正在加载国家数据，请稍候...
+        </div>
+        <div id="continents-container"></div>
+    </div>
+    <div class="info">
+        <h3>使用说明</h3>
+        <p>这个工具可以帮助您快速获取不同国家的谷歌搜索结果链接。输入关键词后，点击"生成链接"按钮，系统会自动生成全球GDP排名前70的国家的谷歌搜索链接。</p>
+        <p>所有链接包含 <code>pws=0</code> 参数，这将禁用谷歌的个性化搜索功能，确保您获得更标准化的搜索结果。</p>
+        <h3>功能特点</h3>
+        <ul>
+            <li>按洲分类展示全球GDP前70的国家</li>
+            <li>支持按GDP排名或国家名称排序</li>
+            <li>三列布局设计，高效显示更多国家信息</li>
+            <li>可以按洲筛选国家</li>
+        </ul>
+        <h3>部署说明</h3>
+        <p>这是一个纯前端项目，可以直接部署到GitHub Pages：</p>
+        <ol>
+            <li>将HTML文件保存为index.html</li>
+            <li>创建一个GitHub仓库</li>
+            <li>上传index.html文件</li>
+            <li>在仓库设置中启用GitHub Pages功能</li>
+        </ol>
+        <p>无需后端服务器，任何静态网站托管服务（如Vercel、Netlify）也可以轻松部署。</p>
+    </div>
+
+    <script>
+        // 按大洲分类的全球GDP前70国家（除中国外）
+        const countries = {
+            asia: [
+                { rank: 2, name: "日本", code: "JP", domain: "co.jp" },
+                { rank: 3, name: "印度", code: "IN", domain: "co.in" },
+                { rank: 10, name: "韩国", code: "KR", domain: "co.kr" },
+                { rank: 14, name: "印度尼西亚", code: "ID", domain: "co.id" },
+                { rank: 16, name: "土耳其", code: "TR", domain: "com.tr" },
+                { rank: 17, name: "沙特阿拉伯", code: "SA", domain: "com.sa" },
+                { rank: 21, name: "伊朗", code: "IR", domain: "com" },
+                { rank: 25, name: "泰国", code: "TH", domain: "co.th" },
+                { rank: 27, name: "以色列", code: "IL", domain: "co.il" },
+                { rank: 33, name: "新加坡", code: "SG", domain: "com.sg" },
+                { rank: 35, name: "马来西亚", code: "MY", domain: "com.my" },
+                { rank: 36, name: "菲律宾", code: "PH", domain: "com.ph" },
+                { rank: 37, name: "巴基斯坦", code: "PK", domain: "com.pk" },
+                { rank: 38, name: "阿联酋", code: "AE", domain: "ae" },
+                { rank: 40, name: "越南", code: "VN", domain: "com.vn" },
+                { rank: 43, name: "孟加拉国", code: "BD", domain: "com.bd" },
+                { rank: 52, name: "卡塔尔", code: "QA", domain: "com.qa" },
+                { rank: 57, name: "伊拉克", code: "IQ", domain: "iq" },
+                { rank: 62, name: "科威特", code: "KW", domain: "com.kw" }
+            ],
+            europe: [
+                { rank: 4, name: "德国", code: "DE", domain: "de" },
+                { rank: 5, name: "英国", code: "GB", domain: "co.uk" },
+                { rank: 6, name: "法国", code: "FR", domain: "fr" },
+                { rank: 7, name: "意大利", code: "IT", domain: "it" },
+                { rank: 9, name: "俄罗斯", code: "RU", domain: "ru" },
+                { rank: 13, name: "西班牙", code: "ES", domain: "es" },
+                { rank: 15, name: "荷兰", code: "NL", domain: "nl" },
+                { rank: 18, name: "瑞士", code: "CH", domain: "ch" },
+                { rank: 19, name: "波兰", code: "PL", domain: "pl" },
+                { rank: 22, name: "瑞典", code: "SE", domain: "se" },
+                { rank: 23, name: "比利时", code: "BE", domain: "be" },
+                { rank: 24, name: "爱尔兰", code: "IE", domain: "ie" },
+                { rank: 26, name: "奥地利", code: "AT", domain: "at" },
+                { rank: 28, name: "挪威", code: "NO", domain: "no" },
+                { rank: 31, name: "丹麦", code: "DK", domain: "dk" },
+                { rank: 34, name: "芬兰", code: "FI", domain: "fi" },
+                { rank: 39, name: "葡萄牙", code: "PT", domain: "pt" },
+                { rank: 41, name: "希腊", code: "GR", domain: "gr" },
+                { rank: 42, name: "捷克", code: "CZ", domain: "cz" },
+                { rank: 45, name: "罗马尼亚", code: "RO", domain: "ro" },
+                { rank: 53, name: "匈牙利", code: "HU", domain: "hu" },
+                { rank: 56, name: "乌克兰", code: "UA", domain: "com.ua" },
+                { rank: 64, name: "斯洛伐克", code: "SK", domain: "sk" },
+                { rank: 67, name: "卢森堡", code: "LU", domain: "lu" },
+                { rank: 69, name: "克罗地亚", code: "HR", domain: "hr" }
+            ],
+            northamerica: [
+                { rank: 1, name: "美国", code: "US", domain: "com" },
+                { rank: 8, name: "加拿大", code: "CA", domain: "ca" },
+                { rank: 11, name: "墨西哥", code: "MX", domain: "com.mx" },
+                { rank: 61, name: "多米尼加共和国", code: "DO", domain: "com.do" },
+                { rank: 63, name: "危地马拉", code: "GT", domain: "com.gt" },
+                { rank: 65, name: "哥斯达黎加", code: "CR", domain: "co.cr" },
+                { rank: 70, name: "巴拿马", code: "PA", domain: "com.pa" }
+            ],
+            southamerica: [
+                { rank: 12, name: "巴西", code: "BR", domain: "com.br" },
+                { rank: 30, name: "阿根廷", code: "AR", domain: "com.ar" },
+                { rank: 44, name: "智利", code: "CL", domain: "cl" },
+                { rank: 46, name: "哥伦比亚", code: "CO", domain: "com.co" },
+                { rank: 47, name: "秘鲁", code: "PE", domain: "com.pe" },
+                { rank: 66, name: "厄瓜多尔", code: "EC", domain: "com.ec" }
+            ],
+            africa: [
+                { rank: 29, name: "埃及", code: "EG", domain: "com.eg" },
+                { rank: 32, name: "南非", code: "ZA", domain: "co.za" },
+                { rank: 48, name: "尼日利亚", code: "NG", domain: "com.ng" },
+                { rank: 49, name: "阿尔及利亚", code: "DZ", domain: "dz" },
+                { rank: 50, name: "摩洛哥", code: "MA", domain: "co.ma" },
+                { rank: 51, name: "埃塞俄比亚", code: "ET", domain: "com.et" },
+                { rank: 54, name: "肯尼亚", code: "KE", domain: "co.ke" },
+                { rank: 58, name: "加纳", code: "GH", domain: "com.gh" },
+                { rank: 68, name: "坦桑尼亚", code: "TZ", domain: "co.tz" }
+            ],
+            oceania: [
+                { rank: 20, name: "澳大利亚", code: "AU", domain: "com.au" },
+                { rank: 55, name: "新西兰", code: "NZ", domain: "co.nz" },
+                { rank: 59, name: "巴布亚新几内亚", code: "PG", domain: "com.pg" },
+                { rank: 60, name: "斐济", code: "FJ", domain: "com.fj" }
+            ]
+        };
+
+        // 大洲名称映射
+        const continentNames = {
+            asia: "亚洲",
+            europe: "欧洲",
+            northamerica: "北美洲",
+            southamerica: "南美洲",
+            africa: "非洲",
+            oceania: "大洋洲"
+        };
+
+        // 初始化页面
+        let currentSortMethod = 'rank'; // 默认按GDP排名排序
+        let currentContinent = 'all'; // 默认显示所有大洲
+
+        // 按GDP排名排序
+        function sortByRank(a, b) {
+            return a.rank - b.rank;
+        }
+
+        // 按国家名称排序
+        function sortByName(a, b) {
+            return a.name.localeCompare(b.name, 'zh-CN');
+        }
+
+        // 生成所有国家链接
+        async function generateLinks() {
+            const searchTerm = document.getElementById('search-input').value.trim();
+            if (!searchTerm) {
+                alert('请输入搜索关键词');
+                return;
+            }
+
+            // 显示加载提示
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('continents-container').innerHTML = '';
+
+            try {
+                const continentsContainer = document.getElementById('continents-container');
+                continentsContainer.innerHTML = '';
+
+                // 遍历每个大洲
+                for (const [continent, continentCountries] of Object.entries(countries)) {
+                    // 如果不是显示全部，且不是当前选中的大洲，则跳过
+                    if (currentContinent !== 'all' && currentContinent !== continent) {
+                        continue;
+                    }
+
+                    // 按当前排序方法排序国家
+                    const sortedCountries = [...continentCountries];
+                    if (currentSortMethod === 'rank') {
+                        sortedCountries.sort(sortByRank);
+                    } else if (currentSortMethod === 'name') {
+                        sortedCountries.sort(sortByName);
+                    }
+
+                    // 创建大洲区域
+                    const continentSection = document.createElement('div');
+                    continentSection.className = 'continent-section';
+
+                    // 创建大洲标题
+                    const continentHeader = document.createElement('div');
+                    continentHeader.className = 'continent-header';
+                    continentHeader.textContent = continentNames[continent] + ` (${sortedCountries.length}个国家)`;
+                    
+                    // 创建国家网格
+                    const countriesGrid = document.createElement('div');
+                    countriesGrid.className = 'countries-grid';
+                    countriesGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+
+                    // 遍历国家，创建卡片
+                    for (const country of sortedCountries) {
+                        const encodedSearchTerm = encodeURIComponent(searchTerm);
+                        const searchUrl = `https://www.google.${country.domain}/search?q=${encodedSearchTerm}&gl=${country.code}&pws=0`;
+                        
+                        // 创建国家卡片
+                        const countryCard = document.createElement('div');
+                        countryCard.className = 'country-card';
+                        countryCard.dataset.rank = country.rank;
+                        
+                        // 创建国家标题
+                        const countryHeader = document.createElement('div');
+                        countryHeader.className = 'country-header';
+                        
+                        const countryName = document.createElement('div');
+                        countryName.className = 'country-name';
+                        countryName.textContent = country.name;
+                        
+                        const countryRank = document.createElement('div');
+                        countryRank.className = 'country-rank';
+                        countryRank.textContent = `GDP #${country.rank}`;
+                        
+                        countryHeader.appendChild(countryName);
+                        countryHeader.appendChild(countryRank);
+                        
+                        // 创建搜索链接
+                        const searchLink = document.createElement('a');
+                        searchLink.href = searchUrl;
+                        searchLink.className = 'search-link';
+                        searchLink.target = '_blank';
+                        searchLink.textContent = searchTerm;
+                        
+                        // 组装卡片
+                        countryCard.appendChild(countryHeader);
+                        countryCard.appendChild(searchLink);
+                        
+                        // 添加到网格
+                        countriesGrid.appendChild(countryCard);
+                    }
+
+                    // 组装大洲区域
+                    continentSection.appendChild(continentHeader);
+                    continentSection.appendChild(countriesGrid);
+                    
+                    // 添加到容器
+                    continentsContainer.appendChild(continentSection);
+                }
+
+                // 隐藏加载提示
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Error generating links:', error);
+                document.getElementById('loading').style.display = 'none';
+                alert('生成链接时发生错误，请重试');
+            }
+        }
+
+        // 排序按钮事件
+        document.getElementById('sort-by-rank').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('sort-by-name').classList.remove('active');
+            currentSortMethod = 'rank';
+            generateLinks();
+        });
+
+        document.getElementById('sort-by-name').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('sort-by-rank').classList.remove('active');
+            currentSortMethod = 'name';
+            generateLinks();
+        });
+
+        // 布局切换按钮事件已移除
+
+        // 大洲筛选按钮事件
+        document.querySelectorAll('.continent-button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.continent-button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                currentContinent = this.dataset.continent;
+                generateLinks();
+            });
+        });
+
+        // 搜索按钮事件
+        document.getElementById('search-button').addEventListener('click', generateLinks);
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateLinks();
+            }
+        });
+
+        // 初始加载时自动生成链接
+        window.onload = generateLinks;
+    </script>
+</body>
+</html>
